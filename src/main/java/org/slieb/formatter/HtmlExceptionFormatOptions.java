@@ -9,6 +9,8 @@ public class HtmlExceptionFormatOptions {
 
     private boolean printStacktrace = true;
 
+    private boolean printCauses = true;
+
     private boolean printFooter = true;
 
     private boolean promoteLibrary = true;
@@ -51,6 +53,14 @@ public class HtmlExceptionFormatOptions {
 
     public void setPromoteLibrary(final boolean promoteLibrary) {
         this.promoteLibrary = promoteLibrary;
+    }
+
+    public boolean printCauses() {
+        return printCauses;
+    }
+
+    public void setPrintCauses(final boolean printCauses) {
+        this.printCauses = printCauses;
     }
 }
 
