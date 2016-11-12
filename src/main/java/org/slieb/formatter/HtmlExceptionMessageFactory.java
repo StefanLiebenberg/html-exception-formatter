@@ -16,7 +16,7 @@ import static org.apache.commons.lang.StringEscapeUtils.escapeHtml;
 
 class HtmlExceptionMessageFactory {
 
-    public static final HtmlAppender ESCAPED_TITLE_APPENDER = createEscapedAppender(Message::getTitle);
+    private static final HtmlAppender ESCAPED_TITLE_APPENDER = createEscapedAppender(Message::getTitle);
 
     static HtmlAppender createFormatter(final HtmlExceptionFormatOptions options) {
         final HtmlAppender htmlAppender = createTagAppender("html", null, createHeadAppender(options).andThenAppend(createBodyAppender(options)));
@@ -67,7 +67,7 @@ class HtmlExceptionMessageFactory {
                         appendTag(appendable, message, throwableTagName, new String[]{"throwable"}, (a, b) -> {
                             appendTag(a, b, messageTagName, new String[]{"title"}, (a1, b2) -> consumer.acceptWithThrowable(a1));
                             a.append("<br />");
-                            if(printStacktrace) {
+                            if (printStacktrace) {
                                 consumerStack.acceptWithThrowable(a);
                             }
                         });
@@ -102,11 +102,9 @@ class HtmlExceptionMessageFactory {
     }
 
     private static ConsumerWithThrowable<Appendable, IOException> throwableAppender(Throwable current) {
-        return (appendable) -> {
-            appendable.append(escapeHtml(current.getClass().getName()))
-                      .append(": ")
-                      .append(escapeHtml(current.getLocalizedMessage()));
-        };
+        return (appendable) -> appendable.append(escapeHtml(current.getClass().getName()))
+                                         .append(": ")
+                                         .append(escapeHtml(current.getLocalizedMessage()));
     }
 
     private static HtmlAppender createStacktraceAppender(final HtmlExceptionFormatOptions options) {
