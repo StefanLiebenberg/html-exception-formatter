@@ -1,0 +1,32 @@
+
+html {
+    background: lightgray;
+}
+
+body {
+    margin: 20px;
+    padding: 20px;
+    background: white;
+}
+
+h1 {
+}
+
+.causes .line {
+    color: gray;
+}
+
+.causes .line .classname {
+    color: lightcoral;
+}
+
+.causes .line .filename {
+    color: cadetblue;
+}
+
+.stacktrace pre {
+ border: 1px solid gray;
+    background: silver;
+    padding: 10px;
+
+}
