@@ -106,10 +106,6 @@
                 <version>2.7</version>
                 <executions>
                     <execution>
-                        <id>default-resources</id>
-                        <phase>none</phase>
-                    </execution>
-                    <execution>
                         <id>default-testResources</id>
                         <phase>none</phase>
                     </execution>
