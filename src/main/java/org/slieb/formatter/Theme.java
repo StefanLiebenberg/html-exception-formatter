@@ -1,8 +1,9 @@
 package org.slieb.formatter;
 
 public enum Theme {
-    
-    EMPTY("empty");
+
+    EMPTY("empty"),
+    GRAY("gray");
 
     private final String name;
 
