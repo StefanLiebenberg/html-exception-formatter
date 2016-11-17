@@ -1,0 +1,101 @@
+<!DOCTYPE html><html><head><title>An Exception Occurred</title><style>
+html {
+    background: lightgray;
+}
+
+body {
+    margin: 20px;
+    padding: 20px;
+    background: white;
+}
+
+.container {
+    margin: 20px auto;
+}
+
+.container input {
+    height: 2.5em;
+    visibility: hidden;
+}
+
+.container label {
+    float: left;
+    background: #f9f9f9;
+    border-radius: .25em .25em 0 0;
+    color: #888;
+    cursor: pointer;
+    display: block;
+    font-size: 1em;
+    height: 2.5em;
+    line-height: 2.5em;
+    margin-right: .25em;
+    padding: 0 1.5em;
+    text-align: center;
+}
+
+.container input:hover + label {
+    background: #ddd;
+    color: #666;
+}
+
+.container input:checked + label {
+    background: #f1f1f1;
+    color: #444;
+    position: relative;
+    z-index: 6;
+}
+
+.container > .content {
+    background: #f1f1f1;
+    border-radius: 0 .25em .25em .25em;
+    min-height: 20em;
+    position: relative;
+    width: 100%;
+    z-index: 5;
+}
+
+.container > .content > .content-1,
+.container > .content > .content-2 {
+    opacity: 0;
+    padding: 1.5em;
+    position: relative;
+    display: none;
+    z-index: -100;
+}
+
+.container > input#tab-1:checked ~ .content > .content-1,
+.container > input#tab-2:checked ~ .content > .content-2 {
+    opacity: 1;
+    z-index: 100;
+    display: block;
+}
+
+input.visible {
+    visibility: visible !important;
+}
+
+.causes .line {
+    color: gray;
+}
+
+.causes .line .classname {
+    color: lightcoral;
+}
+
+.causes .line .filename {
+    color: cadetblue;
+}
+
+.stacktrace pre {
+    border: 1px solid gray;
+    background: silver;
+    padding: 10px;
+}
+</style></head><body><h1>An Exception Occurred</h1><hr /><div class="message">There is a very long error that nobody knows and I hate it.</div><div class=container><input id="tab-1" type=radio name="tab-group" checked=checked /><label for="tab-1">Causes</label><input id="tab-2" type=radio name="tab-group" /><label for="tab-2">Stacktrace</label><div class=content><div class=content-1><div class="causes"><details class="throwable"><summary class="title">java.lang.Throwable: There is a very long error that nobody knows and I hate it.</summary><br /><span class=line>&nbsp;at <span class=classname>org.slieb.formatter.FormaterUsage</span><span class=filename>(FormaterUsage.java:19)</span></span><br/><span class=line>&nbsp;at <span class=classname>sun.reflect.NativeMethodAccessorImpl</span><span class=filename>(NativeMethodAccessorImpl.java:-2)</span></span><br/><span class=line>&nbsp;at <span class=classname>sun.reflect.NativeMethodAccessorImpl</span><span class=filename>(NativeMethodAccessorImpl.java:62)</span></span><br/><span class=line>&nbsp;at <span class=classname>sun.reflect.DelegatingMethodAccessorImpl</span><span class=filename>(DelegatingMethodAccessorImpl.java:43)</span></span><br/><span class=line>&nbsp;at <span class=classname>java.lang.reflect.Method</span><span class=filename>(Method.java:498)</span></span><br/><span class=line>&nbsp;at <span class=classname>com.intellij.rt.execution.application.AppMain</span><span class=filename>(AppMain.java:144)</span></span><br/></details><br /></div></div><div class=content-2><div class="stacktrace"><pre>java.lang.Throwable: There is a very long error that nobody knows and I hate it.
+	at org.slieb.formatter.FormaterUsage.main(FormaterUsage.java:19)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at com.intellij.rt.execution.application.AppMain.main(AppMain.java:144)
+</pre></div></div></div><hr /><center><small>Message generated at 2016-11-17T11:43:15.443 by <a href="http://github.com/StefanLiebenberg/html-exception-formatter">Html Exception Formatter.</a></small></center></body></html>

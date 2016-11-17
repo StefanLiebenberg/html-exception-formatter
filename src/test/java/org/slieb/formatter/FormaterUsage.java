@@ -14,13 +14,13 @@ public class FormaterUsage {
         options.setTheme(Theme.GRAY);
         HtmlExceptionFormatter htmlExceptionFormatter = new HtmlExceptionFormatter(options);
 
-        File errorFile = new File("error.html");
+        File errorFile = new File("sample/error.html");
         try (OutputStream istream = new FileOutputStream(errorFile)) {
             Throwable throwable = new Throwable("There is a very long error that nobody knows and I hate it.");
             IOUtils.write(htmlExceptionFormatter.toString(throwable), istream);
         }
 
-        File messageFile = new File("message.html");
+        File messageFile = new File("sample/message.html");
         try (OutputStream istream = new FileOutputStream(messageFile)) {
             IOUtils.write(htmlExceptionFormatter.toString("There is some error content",
                                                           "There is a very long error that nobody knows and I hate it."), istream);
