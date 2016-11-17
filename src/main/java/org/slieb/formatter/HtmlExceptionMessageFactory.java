@@ -18,9 +18,11 @@ class HtmlExceptionMessageFactory {
 
     private static final HtmlAppender ESCAPED_TITLE_APPENDER = createEscapedAppender(Message::getTitle);
 
-    private static final HtmlAppender BR_APPENDER = createStaticAppender("<hr />");
+    private static final HtmlAppender BR_APPENDER = createStaticAppender("<br />");
 
-    private static final HtmlAppender HR_APPENDER = createStaticAppender("<br />");
+    private static final HtmlAppender HR_APPENDER = createStaticAppender("<hr />");
+
+    private static final HtmlAppender NULL_APPENDER = (v1, v2) -> {};
 
     static HtmlAppender createFormatter(final HtmlExceptionFormatOptions options) {
         final HtmlAppender htmlAppender = createTagAppender("html", null, createHeadAppender(options).andThenAppend(createBodyAppender(options)));
@@ -48,31 +50,83 @@ class HtmlExceptionMessageFactory {
     private static HtmlAppender createBodyAppender(final HtmlExceptionFormatOptions options) {
         return createTagAppender("body", null, createHeadingAppender(options)
                 .andThenAppend(HR_APPENDER)
-                .andThenAppend(createEscapedAppender(Message::getContent))
-                .andThenAppend(createCausesAppender(options))
-                .andThenAppend(createStacktraceAppender(options))
+                .andThenAppend(bodyContentAppender(options))
                 .andThenAppend(HR_APPENDER)
                 .andThenAppend(createFooterAppender(options)));
     }
 
-    private static HtmlAppender createCausesAppender(final HtmlExceptionFormatOptions options) {
-        if (options.printDetails() && options.printCauses()) {
-            final boolean printStacktrace = options.printStacktrace();
-            final String throwableTagName = printStacktrace ? "details" : "div";
-            final String messageTagName = printStacktrace ? "summary" : "span";
-            return createTagAppender("div", new String[]{"causes"}, (appendable, message) -> {
-                Throwable current = message.getThrowable();
-                if (current != null) {
-                    appendable.append("<h2>Causes:</h2>");
-                    while (current != null) {
-                        appendCauseEntry(printStacktrace, throwableTagName, messageTagName, appendable, message, current);
-                        current = current.getCause();
-                    }
+    private static HtmlAppender bodyContentAppender(final HtmlExceptionFormatOptions options) {
+
+        HtmlAppender messageAppender =
+                createTagAppender("div", new String[]{"message"}, createEscapedAppender(Message::getContent));
+
+        boolean printCauses = options.printDetails() && options.printCauses();
+        HtmlAppender causesAppender = createCausesAppender(options);
+
+        boolean printStack = options.printDetails() && options.printStacktrace();
+        HtmlAppender stacktraceAppender = createStacktraceAppender(options);
+
+        boolean hasTabs = options.getTheme() == Theme.GRAY;
+
+        return (appender, message) -> {
+            messageAppender.acceptWithThrowable(appender, message);
+
+            boolean hasThrowable = message.getThrowable() != null;
+
+            if (hasThrowable && (printCauses || printStack)) {
+                appender.append("<div class=container>");
+
+                if (hasTabs && printCauses) {
+                    appender.append("<input id=\"tab-1\" type=radio name=\"tab-group\" checked=checked />");
+                    appender.append("<label for=\"tab-1\">Causes</label>");
                 }
-            });
-        } else {
-            return nullAppender();
-        }
+
+                if (hasTabs && printStack) {
+                    appender.append("<input id=\"tab-2\" type=radio name=\"tab-group\" />");
+                    appender.append("<label for=\"tab-2\">Stacktrace</label>");
+                }
+
+                appender.append("<div class=content>");
+
+                if (printCauses) {
+
+                    appender.append("<div class=content-1>");
+
+                    if (!hasTabs) {
+                        appender.append("<h2>Causes</h2>");
+                    }
+
+                    causesAppender.acceptWithThrowable(appender, message);
+                    appender.append("</div>");
+                }
+
+                if (printStack) {
+                    appender.append("<div class=content-2>");
+                    if (!hasTabs) {
+                        appender.append("<h2>Stacktrace</h2>");
+                    }
+                    stacktraceAppender.acceptWithThrowable(appender, message);
+                    appender.append("</div>");
+                }
+
+                appender.append("</div>");
+            }
+        };
+    }
+
+    private static HtmlAppender createCausesAppender(final HtmlExceptionFormatOptions options) {
+        final boolean printStacktrace = options.printStacktrace();
+        final String throwableTagName = printStacktrace ? "details" : "div";
+        final String messageTagName = printStacktrace ? "summary" : "span";
+        return createTagAppender("div", new String[]{"causes"}, (appendable, message) -> {
+            Throwable current = message.getThrowable();
+            if (current != null) {
+                while (current != null) {
+                    appendCauseEntry(printStacktrace, throwableTagName, messageTagName, appendable, message, current);
+                    current = current.getCause();
+                }
+            }
+        });
     }
 
     private static void appendCauseEntry(final boolean printStacktrace, final String throwableTagName, final String messageTagName, final Appendable appendable,
@@ -87,6 +141,23 @@ class HtmlExceptionMessageFactory {
             }
         });
         BR_APPENDER.acceptWithThrowable(appendable, message);
+    }
+
+    private static HtmlAppender createStacktraceAppender(final HtmlExceptionFormatOptions options) {
+
+        return (appendable, message) -> {
+            final Throwable throwable = message.getThrowable();
+            if (throwable != null) {
+                final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                final PrintStream printStream = new PrintStream(byteArrayOutputStream);
+                throwable.printStackTrace(printStream);
+                appendable.append("<div class=\"stacktrace\">");
+                appendable.append("<pre>")
+                          .append(escapeHtml(byteArrayOutputStream.toString()))
+                          .append("</pre>");
+                appendable.append("</div>");
+            }
+        };
     }
 
     private static ConsumerWithThrowable<Appendable, IOException> throwableStackAppender(Throwable current) {
@@ -115,40 +186,23 @@ class HtmlExceptionMessageFactory {
                                          .append(escapeHtml(current.getLocalizedMessage()));
     }
 
-    private static HtmlAppender createStacktraceAppender(final HtmlExceptionFormatOptions options) {
-        if (options.printDetails() && options.printStacktrace()) {
-            return (appendable, message) -> {
-                final Throwable throwable = message.getThrowable();
-                if (throwable != null) {
-                    final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                    final PrintStream printStream = new PrintStream(byteArrayOutputStream);
-                    throwable.printStackTrace(printStream);
-                    appendable.append("<div class=\"stacktrace\">");
-                    appendable.append("<h2>Raw Stacktrace:</h2>");
-                    appendable.append("<pre>")
-                              .append(escapeHtml(byteArrayOutputStream.toString()))
-                              .append("</pre>");
-                    appendable.append("</div>");
-                }
-            };
-        } else {
-            return nullAppender();
-        }
-    }
-
     private static HtmlAppender createFooterAppender(final HtmlExceptionFormatOptions options) {
         if (options.printFooter()) {
             boolean promote = options.promoteLibrary();
-            return (v1, v2) -> v1.append("<center><small>")
-                                 .append("Message generated at ")
-                                 .append(escapeHtml(ZonedDateTime.now().toLocalDateTime().toString()))
-                                 .append(" by ")
-                                 .append(promote ? "<a href=\"http://github.com/StefanLiebenberg/html-exception-formatter\">" : "<b>")
-                                 .append("Html Exception Formatter.")
-                                 .append(options.promoteLibrary() ? "</a>" : "</b>")
-                                 .append("</small></center>");
+            return (v1, v2) -> {
+                v1.append("<center><small>")
+                  .append("Message generated at ")
+                  .append(escapeHtml(ZonedDateTime.now().toLocalDateTime().toString()));
+                if (promote) {
+                    v1.append(" by ")
+                      .append("<a href=\"http://github.com/StefanLiebenberg/html-exception-formatter\">")
+                      .append("Html Exception Formatter.")
+                      .append("</a>");
+                }
+                v1.append("</small></center>");
+            };
         } else {
-            return nullAppender();
+            return NULL_APPENDER;
         }
     }
 
@@ -156,7 +210,10 @@ class HtmlExceptionMessageFactory {
         final HtmlAppender withThrowableTitle = ESCAPED_TITLE_APPENDER.andThenAppend((a, m) -> {
             Throwable t = m.getThrowable();
             if (t != null) {
-                a.append(": ").append(escapeHtml(t.getLocalizedMessage()));
+                String localizedMessage = t.getLocalizedMessage();
+                if (localizedMessage.length() < 50) {
+                    a.append(": ").append(escapeHtml(localizedMessage));
+                }
             }
         });
         return createTagAppender("h1", null, options.printDetails() ? withThrowableTitle : ESCAPED_TITLE_APPENDER);
@@ -176,10 +233,6 @@ class HtmlExceptionMessageFactory {
     }
 
     private static HtmlAppender createStaticAppender(final String csq) {return (v1, v2) -> v1.append(csq);}
-
-    private static HtmlAppender nullAppender() {
-        return (v1, v2) -> {};
-    }
 
     private static void appendTag(final Appendable appendable, final Message type, final String tagName, final String[] classNames,
                                   final HtmlAppender contentAppender) throws IOException {

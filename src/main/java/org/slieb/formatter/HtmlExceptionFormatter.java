@@ -1,8 +1,6 @@
 package org.slieb.formatter;
 
-import java.io.IOException;
-
-@SuppressWarnings("WeakerAccess")
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class HtmlExceptionFormatter {
 
     private final HtmlAppender throwableHtmlAppender;
@@ -15,30 +13,28 @@ public class HtmlExceptionFormatter {
         this(new HtmlExceptionFormatOptions());
     }
 
-    public void formatMessage(Appendable appendable, Message message) throws IOException {
-        throwableHtmlAppender.acceptWithThrowable(appendable, message);
+    public void formatMessage(Appendable appendable, Message message) {
+        throwableHtmlAppender.accept(appendable, message);
     }
 
-    public void formatMessage(Appendable appendable, String title, String content, Throwable throwable) throws IOException {
+    public void formatMessage(Appendable appendable, String title, String content, Throwable throwable) {
         formatMessage(appendable, new Message(title, content, throwable));
     }
 
     /**
      * @param appendable A appendable interface to append the output html to
      * @param throwable  the throwable instance
-     * @throws IOException an IOException
      */
-    public void formatMessage(Appendable appendable, Throwable throwable) throws IOException {
-        formatMessage(appendable, "An Exception Occurred", null, throwable);
+    public void formatMessage(Appendable appendable, Throwable throwable) {
+        formatMessage(appendable, "An Exception Occurred", throwable.getLocalizedMessage(), throwable);
     }
 
     /**
      * @param appendable A appendable interface to append the output html to
      * @param title      The html message title
      * @param content    The html message body
-     * @throws IOException an IOException
      */
-    public void formatMessage(Appendable appendable, String title, String content) throws IOException {
+    public void formatMessage(Appendable appendable, String title, String content) {
         formatMessage(appendable, title, content, null);
     }
 
@@ -47,9 +43,8 @@ public class HtmlExceptionFormatter {
      * @param content   The html message body
      * @param throwable The throwable instance
      * @return A html string
-     * @throws IOException an IOException
      */
-    public String toString(String title, String content, Throwable throwable) throws IOException {
+    public String toString(String title, String content, Throwable throwable) {
         final StringBuilder stringBuilder = new StringBuilder();
         formatMessage(stringBuilder, title, content, throwable);
         return stringBuilder.toString();
@@ -59,9 +54,8 @@ public class HtmlExceptionFormatter {
      * @param title   The title to display on page.
      * @param content The message content to display on the html page.
      * @return A html string
-     * @throws IOException an IOException
      */
-    public String toString(String title, String content) throws IOException {
+    public String toString(String title, String content) {
         final StringBuilder stringBuilder = new StringBuilder();
         formatMessage(stringBuilder, title, content);
         return stringBuilder.toString();
@@ -70,9 +64,8 @@ public class HtmlExceptionFormatter {
     /**
      * @param throwable The throwable exception to turn into a html string
      * @return A html string
-     * @throws IOException an IOException
      */
-    public String toString(Throwable throwable) throws IOException {
+    public String toString(Throwable throwable) {
         final StringBuilder stringBuilder = new StringBuilder();
         formatMessage(stringBuilder, throwable);
         return stringBuilder.toString();
