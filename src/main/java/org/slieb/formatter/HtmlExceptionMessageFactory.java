@@ -37,8 +37,8 @@ class HtmlExceptionMessageFactory {
     }
 
     private static HtmlAppender createThemeAppender(HtmlExceptionFormatOptions options) {
+        final String url = "/org/slieb/html/themes/" + options.getTheme().getName() + ".css";
         return (appendable, type) -> {
-            final String url = "/org/slieb/html/themes/" + options.getTheme().getName() + ".css";
             try (final InputStream inputStream = HtmlExceptionMessageFactory.class.getResourceAsStream(url)) {
                 if (inputStream != null) {
                     appendTag(appendable, type, "style", null, (a, t) -> a.append(IOUtils.toString(inputStream)));
@@ -64,7 +64,7 @@ class HtmlExceptionMessageFactory {
         HtmlAppender causesAppender = createCausesAppender(options);
 
         boolean printStack = options.printDetails() && options.printStacktrace();
-        HtmlAppender stacktraceAppender = createStacktraceAppender(options);
+        HtmlAppender stacktraceAppender = createStacktraceAppender();
 
         boolean hasTabs = options.getTheme() == Theme.GRAY;
 
@@ -82,7 +82,11 @@ class HtmlExceptionMessageFactory {
                 }
 
                 if (hasTabs && printStack) {
-                    appender.append("<input id=\"tab-2\" type=radio name=\"tab-group\" />");
+                    appender.append("<input id=\"tab-2\" type=radio name=\"tab-group\"");
+                    if (!printCauses) {
+                        appender.append(" checked=checked");
+                    }
+                    appender.append("/>");
                     appender.append("<label for=\"tab-2\">Stacktrace</label>");
                 }
 
@@ -129,8 +133,12 @@ class HtmlExceptionMessageFactory {
         });
     }
 
-    private static void appendCauseEntry(final boolean printStacktrace, final String throwableTagName, final String messageTagName, final Appendable appendable,
-                                         final Message message, final Throwable current) throws IOException {
+    private static void appendCauseEntry(final boolean printStacktrace,
+                                         final String throwableTagName,
+                                         final String messageTagName,
+                                         final Appendable appendable,
+                                         final Message message,
+                                         final Throwable current) throws IOException {
         final ConsumerWithThrowable<Appendable, IOException> consumer = throwableAppender(current);
         final ConsumerWithThrowable<Appendable, IOException> consumerStack = throwableStackAppender(current);
         appendTag(appendable, message, throwableTagName, new String[]{"throwable"}, (a, b) -> {
@@ -143,8 +151,7 @@ class HtmlExceptionMessageFactory {
         BR_APPENDER.acceptWithThrowable(appendable, message);
     }
 
-    private static HtmlAppender createStacktraceAppender(final HtmlExceptionFormatOptions options) {
-
+    private static HtmlAppender createStacktraceAppender() {
         return (appendable, message) -> {
             final Throwable throwable = message.getThrowable();
             if (throwable != null) {
@@ -181,9 +188,14 @@ class HtmlExceptionMessageFactory {
     }
 
     private static ConsumerWithThrowable<Appendable, IOException> throwableAppender(Throwable current) {
-        return (appendable) -> appendable.append(escapeHtml(current.getClass().getName()))
-                                         .append(": ")
-                                         .append(escapeHtml(current.getLocalizedMessage()));
+        return (appendable) -> {
+            appendable.append(escapeHtml(current.getClass().getName()));
+            final String localizedMessage = current.getLocalizedMessage();
+            if (localizedMessage != null) {
+                appendable.append(": ")
+                          .append(escapeHtml(localizedMessage));
+            }
+        };
     }
 
     private static HtmlAppender createFooterAppender(final HtmlExceptionFormatOptions options) {
@@ -211,7 +223,7 @@ class HtmlExceptionMessageFactory {
             Throwable t = m.getThrowable();
             if (t != null) {
                 String localizedMessage = t.getLocalizedMessage();
-                if (localizedMessage.length() < 50) {
+                if (localizedMessage != null && localizedMessage.length() < 50) {
                     a.append(": ").append(escapeHtml(localizedMessage));
                 }
             }
